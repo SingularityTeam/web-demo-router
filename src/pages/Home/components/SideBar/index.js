@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Layout, Menu, Icon } from 'antd';
@@ -8,17 +8,33 @@ import { Logo } from './style';
 const { Sider } = Layout;
 const { SubMenu, Item } = Menu;
 
-const SideBar = withRouter(
-  ({ isCollapsed, handleCollapse, keyPath, handleChangeKeyPath, history }) => {
+class SideBar extends Component {
+  state = {
+    isCollapsed: false // 侧边栏折叠状态
+  };
+
+  handleCollapse = () => {
+    this.setState(() => ({
+      isCollapsed: !this.state.isCollapsed
+    }));
+  };
+
+  render() {
+    const { keyPath, history, handleChangeKeyPath } = this.props;
+    const { isCollapsed } = this.state;
     const { pathname } = history.location;
     const keyPathName = pathname === '/' ? ['/discover'] : [pathname];
 
     return (
-      <Sider collapsible collapsed={isCollapsed} onCollapse={handleCollapse}>
+      <Sider
+        collapsible
+        collapsed={isCollapsed}
+        onCollapse={this.handleCollapse}
+      >
         <Logo />
         <Menu
           theme="dark"
-          selectedKeys={keyPathName || keyPath}
+          selectedKeys={keyPathName || keyPath.toJS()}
           mode="inline"
           onClick={handleChangeKeyPath}
         >
@@ -105,20 +121,19 @@ const SideBar = withRouter(
       </Sider>
     );
   }
-);
+}
 
 const mapStateToProps = state => ({
-  isCollapsed: state.getIn(['home', 'isCollapsed']),
   keyPath: state.getIn(['home', 'keyPath'])
 });
 
 const mapStateToDispatch = dispatch => ({
-  handleCollapse: () => dispatch(actionCreators.changeCollapsed()),
-  handleChangeKeyPath: ({ keyPath }) =>
-    dispatch(actionCreators.changeKeyPath(keyPath))
+  handleChangeKeyPath: ({ keyPath }) => dispatch(actionCreators.changeKeyPath(keyPath))
 });
 
-export default connect(
-  mapStateToProps,
-  mapStateToDispatch
-)(SideBar);
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapStateToDispatch
+  )(SideBar)
+);
